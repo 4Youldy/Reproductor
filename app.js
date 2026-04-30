@@ -72,6 +72,19 @@ const TOP10 = [
   },
 ];
 
+const TOP10_GENRES = {
+  'Get Lucky':                                           'electronic',
+  'Dance Dance':                                         'rock',
+  'Smells Like Teen Spirit':                             'rock',
+  'Sweet Chill On Mine':                                 'rock',
+  'Blinding Lights':                                     'pop',
+  'Bohemian Rhapsody':                                   'rock',
+  'Hotel California':                                    'rock',
+  'Stairway to Heaven':                                  'rock',
+  '悲しみがとまらない　I CAN T STOP THE LONELINESS': 'jpop',
+  'Lose Yourself':                                       'hiphop',
+};
+
 /* ════════════════════════════════════════════════
    PLAYLISTS  —  img: portada de la playlist
 ════════════════════════════════════════════════ */
@@ -688,6 +701,7 @@ function selectSong(song) {
   renderQueue();
   incrementPlayCount(song);
   if (document.getElementById('lyricsTabContent')?.style.display !== 'none') fetchLyrics(song);
+  syncHero();
 }
 
 
@@ -758,6 +772,7 @@ function setPlaying(state) {
     btnPlay.innerHTML = '<i class="fas fa-play"></i>';
   }
   syncMiniPlayer();
+  syncHero();
 }
 
 btnPlay.addEventListener('click', () => setPlaying(!playing));
@@ -872,6 +887,9 @@ function switchView(view) {
     (view === 'library' ? '' : 'none');
   document.getElementById('themesSection').style.display =
     (view === 'themes' ? '' : 'none');
+  document.getElementById('profileSection').style.display =
+    (view === 'profile' ? '' : 'none');
+  if (view === 'profile') updateProfileStats();
 }
 
 document.querySelectorAll('.nav-icon').forEach(icon => {
@@ -882,12 +900,59 @@ document.querySelectorAll('.nav-icon').forEach(icon => {
   });
 });
 
-/* ── Búsqueda ── */
+/* ── Búsqueda global ── */
 document.getElementById('searchInput').addEventListener('input', function () {
-  const q = this.value.toLowerCase().trim();
-  document.querySelectorAll('.t10-card').forEach(card => {
-    card.style.opacity = (!q || card.textContent.toLowerCase().includes(q)) ? '1' : '0.28';
+  const q  = this.value.toLowerCase().trim();
+  const dd = document.getElementById('searchDropdown');
+  if (!q) {
+    dd.style.display = 'none';
+    filterTop10ByGenre(currentGenreFilter);
+    return;
+  }
+  const pool = [
+    ...TOP10.map(s       => ({ ...s, _src: 'Top 10' })),
+    ...libraryList.map(s => ({ ...s, _src: 'Biblioteca' })),
+    ...HITS.map(s        => ({ ...s, _src: 'Hits' })),
+  ];
+  const hits = pool.filter(s =>
+    s.name.toLowerCase().includes(q) ||
+    (s.artist && s.artist.toLowerCase().includes(q))
+  ).slice(0, 8);
+
+  if (!hits.length) {
+    dd.innerHTML = `<div class="sd-empty">Sin resultados para "<em>${q}</em>"</div>`;
+    dd.style.display = 'block';
+    return;
+  }
+  dd.innerHTML = hits.map((s, i) => `
+    <div class="sd-item" data-idx="${i}">
+      <div class="sd-art" style="background:linear-gradient(135deg,#0a0a1a,#1a1a3a)">
+        ${s.img ? `<img src="${s.img}" alt="" onerror="this.style.display='none'"
+                        onload="this.style.display='block'" style="display:none">` : ''}
+        <i class="fas fa-music sd-icon"></i>
+      </div>
+      <div class="sd-info">
+        <div class="sd-name">${s.name}</div>
+        <div class="sd-meta">${s.artist ? s.artist + ' · ' : ''}<span class="sd-source">${s._src}</span></div>
+      </div>
+      <span class="sd-play-btn"><i class="fas fa-play"></i></span>
+    </div>`).join('');
+
+  dd.querySelectorAll('.sd-item').forEach((item, i) => {
+    item.addEventListener('click', () => {
+      selectSong(hits[i]);
+      document.getElementById('searchInput').value = '';
+      dd.style.display = 'none';
+    });
   });
+  dd.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#searchBarWrap')) {
+    const dd = document.getElementById('searchDropdown');
+    if (dd) dd.style.display = 'none';
+  }
 });
 
 /* ════════════════════════════════════════════════
@@ -936,6 +1001,7 @@ function addToRecent(track) {
   if (idx > -1) recentlyPlayed.splice(idx, 1);
   recentlyPlayed.unshift(track);
   if (recentlyPlayed.length > 20) recentlyPlayed.pop();
+  renderRecentSection();
 }
 
 /* ════════════════════════════════════════════════
@@ -972,6 +1038,7 @@ function incrementPlayCount(track) {
   playCounts[k].plays++;
   localStorage.setItem(STATS_KEY, JSON.stringify(playCounts));
   updateStatsUI();
+  renderMostPlayed();
 }
 
 let listenSecs = 0;
@@ -1359,6 +1426,110 @@ async function tryRestoreLibrary() {
 }
 
 /* ════════════════════════════════════════════════
+   HOME PAGE — Greeting · Hero · Genre · Recent · Top
+════════════════════════════════════════════════ */
+function updateGreeting() {
+  const h  = new Date().getHours();
+  const el = document.getElementById('greetingLine');
+  if (!el) return;
+  if (h >= 6  && h < 12) el.textContent = '☀️ Buenos días';
+  else if (h >= 12 && h < 20) el.textContent = '🌤️ Buenas tardes';
+  else el.textContent = '🌙 Buenas noches';
+}
+
+function syncHero() {
+  const song   = currentList[currentTrack];
+  if (!song) return;
+  const hImg   = document.getElementById('heroImg');
+  const hBg    = document.getElementById('heroBgBlur');
+  const hName  = document.getElementById('heroSongName');
+  const hArt   = document.getElementById('heroSongArtist');
+  const hBtn   = document.getElementById('heroBtnPlay');
+  if (hImg) {
+    if (song.img) {
+      hImg.src = song.img;
+      hImg.style.display = 'block';
+      if (hImg.nextElementSibling) hImg.nextElementSibling.style.display = 'none';
+    } else {
+      hImg.style.display = 'none';
+      if (hImg.nextElementSibling) hImg.nextElementSibling.style.display = '';
+    }
+  }
+  if (hBg)   hBg.style.backgroundImage  = song.img ? `url(${song.img})` : '';
+  if (hName) hName.textContent  = song.name;
+  if (hArt)  hArt.textContent   = song.artist;
+  if (hBtn)  hBtn.innerHTML = playing
+    ? '<i class="fas fa-pause"></i>'
+    : '<i class="fas fa-play"></i>';
+}
+
+/* Genre filter para el Top 10 */
+let currentGenreFilter = 'all';
+function filterTop10ByGenre(genre) {
+  currentGenreFilter = genre;
+  document.querySelectorAll('.t10-card').forEach((card, i) => {
+    const song      = TOP10[i];
+    const cardGenre = song ? (TOP10_GENRES[song.name] || 'other') : 'other';
+    card.style.display = (genre === 'all' || cardGenre === genre) ? '' : 'none';
+  });
+}
+
+/* Sección "Reproducido recientemente" */
+function renderRecentSection() {
+  const section = document.getElementById('recentSection');
+  const scroll  = document.getElementById('recentScroll');
+  if (!section || !scroll) return;
+  if (!recentlyPlayed.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  scroll.innerHTML = '';
+  recentlyPlayed.slice(0, 10).forEach(song => {
+    const card = el('div', 'recent-card');
+    card.innerHTML = `
+      <div class="recent-art" style="background:linear-gradient(135deg,#0a0a1a,#1a1a3a)">
+        ${song.img
+          ? `<img src="${song.img}" alt="" onerror="this.style.display='none'"
+                  onload="this.style.display='block'" style="display:none">`
+          : ''}
+        <div class="recent-overlay"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="recent-name">${song.name}</div>
+      <div class="recent-artist">${song.artist}</div>`;
+    card.addEventListener('click', () => selectSong(song));
+    scroll.appendChild(card);
+  });
+}
+
+/* Sección "Más escuchadas" */
+function renderMostPlayed() {
+  const section = document.getElementById('mostPlayedSection');
+  const list    = document.getElementById('mostPlayedHome');
+  if (!section || !list) return;
+  const entries = Object.values(playCounts)
+    .sort((a, b) => b.plays - a.plays)
+    .slice(0, 5);
+  if (!entries.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = '';
+  const rankColors = ['#ffd700', '#c0c0c0', '#cd7f32', 'var(--cyan)', 'var(--cyan)'];
+  entries.forEach((entry, i) => {
+    const row = el('div', 'mp-row');
+    row.innerHTML = `
+      <span class="mp-rank" style="color:${rankColors[i]}">${i + 1}</span>
+      <div class="mp-info">
+        <div class="mp-name">${entry.name}</div>
+        <div class="mp-artist">${entry.artist}</div>
+      </div>
+      <span class="mp-count"><i class="fas fa-headphones"></i> ${entry.plays}</span>`;
+    row.addEventListener('click', () => {
+      const found = [...TOP10, ...libraryList]
+        .find(s => s.name === entry.name && s.artist === entry.artist);
+      if (found) selectSong(found);
+    });
+    list.appendChild(row);
+  });
+}
+
+/* ════════════════════════════════════════════════
    TANDA 3 — MINI PLAYER · TOAST · COMPARTIR
 ════════════════════════════════════════════════ */
 function syncMiniPlayer() {
@@ -1429,6 +1600,8 @@ renderBarChart();
 renderGenres();
 renderAds();
 startVizLoop();
+updateGreeting();
+renderMostPlayed();
 
 /* Carga la canción por defecto */
 const PLAYER_DEFAULT = TOP10[0];
@@ -1436,13 +1609,14 @@ currentList  = TOP10;
 currentTrack = 0;
 document.querySelector('.player-song').textContent   = PLAYER_DEFAULT.name;
 document.querySelector('.player-artist').textContent = PLAYER_DEFAULT.artist;
-updateVinylArt(PLAYER_DEFAULT.img);
+updateVinylArt(PLAYER_DEFAULT.img, false);
 if (PLAYER_DEFAULT.src) {
   usingAudio = true;
   audio.src  = PLAYER_DEFAULT.src;
   audio.load();
 }
 setPlaying(false);
+syncHero();
 
 document.getElementById('libConnectBtn').addEventListener('click', connectFolder);
 
@@ -1716,3 +1890,129 @@ setInterval(() => {
 
 /* ── Compartir canción ── */
 document.getElementById('btnShare').addEventListener('click', shareSong);
+
+/* ── Hero play/pause ── */
+document.getElementById('heroBtnPlay').addEventListener('click', () => setPlaying(!playing));
+
+/* ── Genre chips ── */
+document.querySelectorAll('.genre-chip').forEach(chip => {
+  chip.addEventListener('click', function () {
+    document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    filterTop10ByGenre(this.dataset.genre);
+  });
+});
+
+/* ════════════════════════════════════════════════
+   PERFIL — foto · nombre · estadísticas
+════════════════════════════════════════════════ */
+const PROFILE_KEY = '4you_profile';
+
+/** Aplica una foto (dataUrl string | null) al widget y a la sección perfil */
+function applyProfilePhoto(dataUrl) {
+  // Mini avatar en el widget del reproductor
+  const wrap  = document.getElementById('avatarImgEl');
+  const thumb = document.getElementById('avatarPhoto');
+  if (thumb) {
+    thumb.src          = dataUrl || '';
+    thumb.style.display = dataUrl ? 'block' : 'none';
+  }
+  if (wrap) wrap.classList.toggle('has-photo', !!dataUrl);
+
+  // Avatar grande en la sección perfil
+  const bigPhoto    = document.getElementById('profileBigPhoto');
+  const placeholder = document.getElementById('profileAvatarPlaceholder');
+  if (bigPhoto) {
+    bigPhoto.src           = dataUrl || '';
+    bigPhoto.style.display = dataUrl ? 'block' : 'none';
+  }
+  if (placeholder) placeholder.style.display = dataUrl ? 'none' : '';
+}
+
+/** Lee el perfil guardado y lo aplica al arrancar */
+function loadProfile() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    if (saved.photo) applyProfilePhoto(saved.photo);
+    if (saved.name) {
+      const label = document.querySelector('.username-label');
+      if (label) label.textContent = saved.name;
+      const input = document.getElementById('profileUsernameInput');
+      if (input) input.value = saved.name;
+    }
+  } catch { /* si localStorage está bloqueado, ignorar */ }
+}
+
+/** Guarda nombre y muestra toast */
+function saveProfile() {
+  try {
+    const existing = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    const nameInput = document.getElementById('profileUsernameInput');
+    const name = (nameInput ? nameInput.value.trim() : '') || existing.name || '4You';
+    const updated = { ...existing, name };
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(updated));
+    const label = document.querySelector('.username-label');
+    if (label) label.textContent = name;
+    showToast('✅ Perfil guardado');
+  } catch {}
+}
+
+/** Refresca las cifras en la sección perfil */
+function updateProfileStats() {
+  const plays    = Object.values(playCounts).reduce((s, v) => s + v.plays, 0);
+  const favCount = favorites.size;
+  const libCount = libraryList.length;
+  const p1 = document.getElementById('pstatPlays');
+  const p2 = document.getElementById('pstatFavs');
+  const p3 = document.getElementById('pstatLib');
+  if (p1) p1.textContent = plays.toLocaleString();
+  if (p2) p2.textContent = favCount;
+  if (p3) p3.textContent = libCount;
+}
+
+/* ── Click en avatar grande → abre el file picker ── */
+document.getElementById('profileBigAvatar').addEventListener('click', () => {
+  document.getElementById('profileFileInput').click();
+});
+
+/* ── Archivo seleccionado ── */
+document.getElementById('profileFileInput').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    applyProfilePhoto(dataUrl);
+    try {
+      const existing = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+      existing.photo = dataUrl;
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(existing));
+    } catch {}
+    showToast('📸 Foto de perfil actualizada');
+  };
+  reader.readAsDataURL(file);
+  this.value = ''; // permite volver a elegir el mismo archivo
+});
+
+/* ── Quitar foto ── */
+document.getElementById('profileRemoveBtn').addEventListener('click', () => {
+  applyProfilePhoto(null);
+  try {
+    const existing = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    delete existing.photo;
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(existing));
+  } catch {}
+  showToast('🗑️ Foto eliminada');
+});
+
+/* ── Guardar nombre ── */
+document.getElementById('profileSaveBtn').addEventListener('click', saveProfile);
+
+/* ── También guardar con Enter en el input ── */
+document.getElementById('profileUsernameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveProfile(); }
+});
+
+/* ── Cargar perfil al arrancar ── */
+loadProfile();

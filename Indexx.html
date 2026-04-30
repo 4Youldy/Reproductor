@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ── Page transitions ── */
+        @keyframes pg-in  { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pg-out { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-6px); } }
+        body { animation: pg-in .3s ease both; }
+        body.page-out { animation: pg-out .24s ease both !important; pointer-events: none !important; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background-color: #111c2e;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            border-right: 1px solid #1e2d45;
+        }
+
+        .snav-brand {
+            padding: 18px 16px 15px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            border-bottom: 1px solid #1e2d45;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            letter-spacing: 0.3px;
+        }
+
+        .snav-label {
+            padding: 12px 16px 4px;
+            font-size: 9px;
+            color: #3d5068;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .snav-divider {
+            height: 1px;
+            background: #1e2d45;
+            margin: 6px 14px;
+        }
+
+        .snav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 17px;
+            color: #7a8fa8;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: background .15s, color .15s, border-color .15s;
+            width: 100%;
+            background: none;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            text-align: left;
+        }
+
+        .snav-item:hover {
+            background: #1a2d44;
+            color: #e8edf5;
+            border-left-color: #39d353;
+        }
+
+        .snav-item.active {
+            background: #162336;
+            color: #e8edf5;
+            border-left-color: #00d4ff;
+        }
+
+        /* ── Main area ── */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 28px;
+            overflow-y: auto;
+        }
+
+        /* ── Dashboard card ── */
+        .dashboard-container {
+            font-family: 'Inter', sans-serif;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+            border: 1px solid #f0f0f0;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 1.5px solid #e5e7eb;
+            padding: 11px 14px;
+            font-size: 0.95rem;
+            transition: all .2s;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99,102,241,.1);
+            outline: none;
+        }
+
+        .form-control[readonly] {
+            background-color: #f9fafb;
+            border-color: #e5e7eb;
+            color: #111827;
+            font-weight: bold;
+            cursor: default;
+        }
+
+        /* Calculator ops grid */
+        .ops-grid {
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-op {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background: #f3f4f6;
+            color: #374151;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .btn-op:hover { background:#6366f1; color:#fff; transform:translateY(-2px); }
+        .btn-op:active { transform:translateY(0); }
+
+        .result-panel {
+            margin-top: 24px;
+            padding: 18px;
+            background: #f9fafb;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #edf2f7;
+        }
+
+        .result-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        #resultado {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #111827;
+            display: block;
+        }
+
+        /* Lender */
+        .btn-calculate {
+            width: 100%;
+            padding: 13px;
+            border-radius: 10px;
+            background-color: #111827;
+            color: white;
+            font-weight: 600;
+            border: none;
+            transition: background .3s;
+            margin-top: 18px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .btn-calculate:hover { background-color: #374151; }
+
+        .results-section {
+            margin-top: 22px;
+            padding-top: 22px;
+            border-top: 2px dashed #f0f0f0;
+        }
+
+        .input-group-text {
+            border-radius: 10px 0 0 10px;
+            border: 1.5px solid #e5e7eb;
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .input-group .form-control {
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* ════════════════════════════════════════════════════
+           RESPONSIVE — TABLET  (max-width: 1024px)
+           Sidebar más estrecha, dashboard centrado.
+        ════════════════════════════════════════════════════ */
+        @media (max-width: 1024px) {
+
+          .sidebar {
+            width: 180px !important;
+          }
+
+          .dashboard-container {
+            max-width: 100% !important;
+            padding: 22px !important;
+          }
+
+          .main-area {
+            padding: 20px 18px !important;
+          }
+        }
+
+        /* ════════════════════════════════════════════════════
+           RESPONSIVE — MÓVIL  (max-width: 640px)
+           - Sidebar → barra inferior fija.
+           - Dashboard ocupa el ancho completo.
+           - Grids de 2 columnas → 1 columna.
+        ════════════════════════════════════════════════════ */
+        @media (max-width: 640px) {
+
+          /* ── Layout apilado ── */
+          body {
+            flex-direction: column !important;
+            overflow: auto !important;
+            height: auto !important;
+          }
+
+          /* ── Sidebar → barra inferior fija ── */
+          .sidebar {
+            position: fixed !important;
+            bottom: 0; left: 0; right: 0;
+            width: 100% !important;
+            min-height: 0 !important;
+            height: 56px !important;
+            flex-direction: row !important;
+            border-right: none !important;
+            border-top: 1px solid #1e2d45 !important;
+            overflow: hidden !important;
+            z-index: 1000;
+            padding: 0 !important;
+            align-items: center;
+          }
+
+          /* Ocultar etiquetas de sección y divisor */
+          .snav-brand,
+          .snav-label,
+          .snav-divider {
+            display: none !important;
+          }
+
+          /* Ítems de nav: icono + texto pequeño apilados */
+          .snav-item {
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 2px !important;
+            padding: 6px 0 !important;
+            font-size: 9px !important;
+            width: auto !important;
+            flex: 1 !important;
+            border-left: none !important;
+            border-bottom: 3px solid transparent !important;
+          }
+          .snav-item i { font-size: 17px !important; }
+          .snav-item.active {
+            border-bottom-color: #00d4ff !important;
+            border-left-color: transparent !important;
+          }
+          .snav-item span { font-size: 9px !important; line-height: 1; }
+
+          /* ── Área principal ── */
+          .main-area {
+            padding: 16px 12px 70px !important; /* 70px = espacio barra inferior */
+          }
+
+          /* ── Dashboard card: ocupa todo el ancho ── */
+          .dashboard-container {
+            max-width: 100% !important;
+            padding: 18px 14px !important;
+          }
+
+          /* ── Operaciones: 1 columna en vez de 2 ── */
+          .ops-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* ── Título del panel ── */
+          .header-title {
+            font-size: 1.15rem !important;
+          }
+
+          /* ── Resultado grande más pequeño ── */
+          #resultado {
+            font-size: 1.6rem !important;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+    <div class="snav-brand">
+        <i class="fas fa-th-large"></i><span>Multi-Dashboard</span>
+    </div>
+    <div class="snav-label">Páginas</div>
+    <a class="snav-item" href="hub.html"><i class="fas fa-th-large"></i><span>Hub</span></a>
+    <a class="snav-item" href="IA.html"><i class="fas fa-robot"></i><span>Asistente IA</span></a>
+    <a class="snav-item" href="index.html"><i class="fas fa-music"></i><span>Reproductor</span></a>
+    <div class="snav-divider"></div>
+    <div class="snav-label">Herramientas</div>
+    <button class="snav-item active" id="btnCalc" onclick="switchTab('calc')">
+        <i class="fas fa-calculator"></i><span>Calculadora</span>
+    </button>
+    <button class="snav-item" id="btnLender" onclick="switchTab('lender')">
+        <i class="fas fa-hand-holding-dollar"></i><span>Prestamista</span>
+    </button>
+</nav>
+
+<!-- ── Main content ── -->
+<div class="main-area">
+
+    <!-- Calculadora -->
+    <div id="tab-calc" class="dashboard-container">
+        <h3 class="header-title">Calculadora</h3>
+
+        <div class="row">
+            <div class="col-6 mb-3">
+                <label class="form-label">Número 1</label>
+                <input type="number" id="num1" class="form-control" placeholder="0">
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Número 2</label>
+                <input type="number" id="num2" class="form-control" placeholder="0">
+            </div>
+        </div>
+
+        <div class="ops-grid">
+            <button class="btn-op" onclick="calcular('suma')">Sumar</button>
+            <button class="btn-op" onclick="calcular('resta')">Restar</button>
+            <button class="btn-op" onclick="calcular('multiplicacion')">Multiplicar</button>
+            <button class="btn-op" onclick="calcular('division')">Dividir</button>
+        </div>
+
+        <div class="result-panel">
+            <span class="result-label">Resultado final</span>
+            <span id="resultado">0</span>
+        </div>
+    </div>
+
+    <!-- Prestamista -->
+    <div id="tab-lender" class="dashboard-container" style="display:none">
+        <h3 class="header-title">Simulador de Crédito</h3>
+
+        <form id="loanForm">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="Nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="Nombre" placeholder="Ej: Juan">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="apellidos" class="form-label">Apellidos</label>
+                    <input type="text" class="form-control" id="apellidos" placeholder="Ej: Pérez">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="prestamo" class="form-label">Monto del Préstamo</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control" id="prestamo" placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="meses" class="form-label">Plazo (Meses)</label>
+                    <input type="number" class="form-control" id="meses" placeholder="Ej: 12">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="interes" class="form-label">Tasa de Interés (%)</label>
+                    <input type="number" class="form-control" id="interes" placeholder="Ej: 5">
+                </div>
+            </div>
+
+            <button type="button" class="btn-calculate" onclick="Resultado()">Calcular Crédito</button>
+
+            <div class="results-section">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Total Intereses</label>
+                        <input type="text" class="form-control" id="intereses" readonly>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Total a Pagar</label>
+                        <input type="text" class="form-control" id="capitalInteres" readonly>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div><!-- /main-area -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    /* ── Tab switching ── */
+    function switchTab(tab) {
+        document.getElementById('tab-calc').style.display   = tab === 'calc'   ? '' : 'none';
+        document.getElementById('tab-lender').style.display = tab === 'lender' ? '' : 'none';
+        document.getElementById('btnCalc').classList.toggle('active',   tab === 'calc');
+        document.getElementById('btnLender').classList.toggle('active', tab === 'lender');
+    }
+
+    /* Auto-activate from hash */
+    if (window.location.hash === '#prestamista') {
+        switchTab('lender');
+    }
+
+    /* ── Calculator ── */
+    function calcular(operacion) {
+        const Num1 = parseFloat(document.getElementById('num1').value);
+        const Num2 = parseFloat(document.getElementById('num2').value);
+        if (!isNaN(Num1) && !isNaN(Num2)) {
+            let resultado;
+            switch (operacion) {
+                case 'suma':            resultado = Num1 + Num2; break;
+                case 'resta':           resultado = Num1 - Num2; break;
+                case 'multiplicacion':  resultado = Num1 * Num2; break;
+                case 'division':        resultado = Num2 !== 0 ? Num1 / Num2 : 'Error'; break;
+            }
+            document.getElementById('resultado').innerText = resultado;
+        }
+    }
+
+    /* ── Lender ── */
+    function Resultado() {
+        var prestamo = parseFloat(document.getElementById("prestamo").value) || 0;
+        var meses    = parseInt(document.getElementById("meses").value) || 0;
+        var interes  = parseFloat(document.getElementById("interes").value) || 0;
+
+        var totalInteres = (prestamo * interes / 100) * meses;
+        var capitalTotal = prestamo + totalInteres;
+
+        document.getElementById("intereses").value     = "$ " + totalInteres.toLocaleString();
+        document.getElementById("capitalInteres").value = "$ " + capitalTotal.toLocaleString();
+    }
+
+    /* ── Page transitions ── */
+    (function(){
+        function navigate(url){ document.body.classList.add('page-out'); setTimeout(function(){ window.location.href=url; },240); }
+        document.addEventListener('click',function(e){
+            var link=e.target.closest('a[href]'); if(!link) return;
+            var href=link.getAttribute('href');
+            if(!href||href.indexOf('javascript')===0||link.target==='_blank') return;
+            e.preventDefault(); navigate(href);
+        },true);
+        window._navigate=navigate;
+    })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Virtual SENA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=calculate,grid_view,music_note,payments,smart_toy" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #95a096;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background-color: #1a2332;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            padding: 20px 16px 16px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #2c3e50;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 12px 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 18px;
+            color: #a0aec0;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav li a:hover {
+            background-color: #2c3e50;
+            color: #fff;
+            border-left-color: #39d353;
+        }
+
+        .sidebar-nav li a.active {
+            background-color: #243447;
+            color: #fff;
+            border-left-color: #39d353;
+        }
+
+        .sidebar-nav .material-symbols-outlined {
+            font-size: 18px;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            line-height: 1;
+        }
+
+        @keyframes pg-in  { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pg-out { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-6px); } }
+        body { animation: pg-in .3s ease both; }
+        body.page-out { animation: pg-out .24s ease both !important; pointer-events: none !important; }
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+
+        .chat-wrapper {
+            width: 100%;
+            max-width: 700px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #fff;
+        }
+
+        .message-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .user-row {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .bot-bubble {
+            background-color: #0e17ca;
+            color: #f6f8fa;
+        }
+
+        .user-bubble {
+            background-color: #499019;
+            color: #fff;
+        }
+
+        .msg-time {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 6px 10px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #225a19;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* ════════════════════════════════════════════════════
+           RESPONSIVE — TABLET  (max-width: 1024px)
+           Reducir ancho de la sidebar y ajustar el chat.
+        ════════════════════════════════════════════════════ */
+        @media (max-width: 1024px) {
+
+          /* Sidebar más estrecha en tablet */
+          .sidebar {
+            width: 180px !important;
+          }
+
+          /* Chat wrapper más ancho */
+          .chat-wrapper {
+            max-width: 100% !important;
+          }
+        }
+
+        /* ════════════════════════════════════════════════════
+           RESPONSIVE — MÓVIL  (max-width: 640px)
+           - La sidebar pasa a barra inferior fija.
+           - El chat ocupa toda la pantalla.
+           - El body hace scroll vertical.
+        ════════════════════════════════════════════════════ */
+        @media (max-width: 640px) {
+
+          /* ── Layout apilado ── */
+          body {
+            flex-direction: column !important;
+            overflow: auto !important;
+            height: auto !important;
+          }
+
+          /* ── Sidebar → barra inferior fija ── */
+          .sidebar {
+            position: fixed !important;
+            bottom: 0; left: 0; right: 0;
+            width: 100% !important;
+            min-height: 0 !important;
+            height: 56px !important;
+            flex-direction: row !important;
+            border-right: none !important;
+            border-top: 1px solid #2c3e50 !important;
+            overflow: hidden !important;
+            z-index: 1000;
+            padding: 0 !important;
+            justify-content: space-around;
+            align-items: center;
+          }
+
+          /* Ocultar marca en barra inferior */
+          .sidebar-brand { display: none !important; }
+
+          /* Ítems de nav: solo icono */
+          .sidebar-nav {
+            display: flex !important;
+            flex-direction: row !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            justify-content: space-around;
+          }
+          .sidebar-nav li { flex: 1; }
+          .sidebar-nav li a {
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 2px !important;
+            padding: 6px 0 !important;
+            font-size: 9px !important;
+            border-left: none !important;
+            border-bottom: 3px solid transparent !important;
+          }
+          .sidebar-nav li a.active {
+            border-bottom-color: #39d353 !important;
+            border-left-color: transparent !important;
+          }
+          .sidebar-nav .material-symbols-outlined {
+            font-size: 20px !important;
+          }
+
+          /* ── Área del chat ── */
+          .main-content {
+            padding: 12px 10px 70px !important; /* espacio para barra inferior */
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+          }
+
+          /* Chat wrapper a altura casi total de pantalla */
+          .chat-wrapper {
+            height: calc(100vh - 80px) !important;
+            max-width: 100% !important;
+          }
+
+          /* Burbujas más anchas en móvil */
+          .message-bubble {
+            max-width: 88% !important;
+            font-size: 13px !important;
+          }
+        }
+
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <div class="sidebar-brand">SENA App</div>
+    <ul class="sidebar-nav">
+        <li>
+            <a href="hub.html">
+                <span class="material-symbols-outlined">grid_view</span> Hub
+            </a>
+        </li>
+        <li>
+            <a href="IA.html" class="active">
+                <span class="material-symbols-outlined">smart_toy</span> Asistente IA
+            </a>
+        </li>
+        <li>
+            <a href="index.html">
+                <span class="material-symbols-outlined">music_note</span> Reproductor
+            </a>
+        </li>
+        <li>
+            <a href="Indexx.html">
+                <span class="material-symbols-outlined">calculate</span> Calculadora
+            </a>
+        </li>
+        <li>
+            <a href="Indexx.html#prestamista">
+                <span class="material-symbols-outlined">payments</span> Prestamista
+            </a>
+        </li>
+    </ul>
+</nav>
+
+
+<div class="main-content">
+<div class="chat-wrapper card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex align-items-center">
+        <strong>SENA IA - Asistente Virtual</strong>
+    </div>
+
+    <div class="chat-messages" id="chatMessages"></div>
+
+
+    <div class="card-footer bg-white p-2">
+        <div class="input-group">
+            <input type="text" class="form-control" id="userInput" placeholder="Escribe tu pregunta..." autocomplete="off" onkeydown="handleKey(event)">
+            <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Enviar</button>
+        </div>
+        <small class="text-muted d-block text-center mt-1">Asistente educativo virtual</small>
+    </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function getTime() {
+        return new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function appendMessage(text, sender) {
+        const isUser = sender === 'user';
+
+        const row = document.createElement('div');
+        row.className = 'message-row ' + (isUser ? 'user-row' : '');
+
+        const col = document.createElement('div');
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble ' + (isUser ? 'user-bubble' : 'bot-bubble');
+        bubble.textContent = text;
+
+        const time = document.createElement('div');
+        time.className = 'msg-time ' + (isUser ? 'text-end' : '');
+        time.textContent = getTime();
+
+        col.appendChild(bubble);
+        col.appendChild(time);
+        row.appendChild(col);
+        chatMessages.appendChild(row);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+        const row = document.createElement('div');
+        row.className = 'message-row';
+        row.id = 'typingRow';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble bot-bubble';
+        bubble.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+        row.appendChild(bubble);
+        chatMessages.appendChild(row);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTyping() {
+        const el = document.getElementById('typingRow');
+        if (el) el.remove();
+    }
+
+    function norm(t) {
+        return t.toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/[¿¡]/g, '').trim();
+    }
+
+    function calcula(operando1) {
+        const q = norm(operando1);
+
+        if (/^(hola|hey|buenas|buenos dias|buenas tardes|buenas noches|saludos)/.test(q))
+            return 'Hola! Soy el asistente virtual del SENA. Puedes preguntarme sobre programas, inscripciones, datos curiosos, empleo y mucho mas. En que te ayudo?';
+
+        if (q === 'jue')
+            return 'Hablalo mi perrito';
+
+        if (q.includes('que es el sena') || q.includes('informacion del sena') || q.includes('informacion sobre') || (q.includes('sena') && q.includes('institucion')))
+            return 'El SENA (Servicio Nacional de Aprendizaje) es la institucion de educacion para el trabajo mas grande de Colombia. Fundada en 1957, ofrece formacion tecnica, tecnologica y complementaria completamente gratuita.';
+
+        if (q.includes('mision') || (q.includes('para que') && q.includes('sena')))
+            return 'Mision del SENA:\n\n"El SENA esta encargado de cumplir la funcion que le corresponde al Estado de invertir en el desarrollo social y tecnico de los trabajadores colombianos, ofreciendo y ejecutando la formacion profesional integral, para la incorporacion y el desarrollo de las personas en actividades productivas que contribuyan al desarrollo social, economico y tecnologico del pais."';
+
+        if (q.includes('vision') || (q.includes('futuro') && q.includes('sena')))
+            return 'Vision del SENA:\n\n"En 2030, el SENA sera reconocido por su contribucion al desarrollo productivo del pais y al mejoramiento de la calidad de vida de los colombianos, por la pertinencia y calidad de sus procesos de formacion profesional integral, innovacion, desarrollo tecnologico y el apoyo decidido al emprendimiento."';
+
+        if (q.includes('himno') || q.includes('cancion') || q.includes('canto') || q.includes('letra del sena'))
+            return 'Himno del SENA\n\nCORO:\nGloria al SENA que forja el futuro\nde la patria en trabajo y en accion!\nSus aprendices llevan el juramento\nde engrandecer a Colombia, su nacion.\n\nESTROFA I:\nLa ensenanza del SENA ilumina\ntodo esfuerzo de paz y de labor,\ny el trabajo del hombre que camina\nbusca siempre un eterno valor.\n\nESTROFA II:\nCon las manos, la mente y el alma\nel aprendiz del SENA triunfara,\ny su patria gozara mayor calma\ncuando el fruto del SENA se vera.';
+
+        if (q.includes('historia') || q.includes('cuando fue creado') || q.includes('cuando nacio') || q.includes('fundacion') || q.includes('fundador') || q.includes('1957') || q.includes('martinez tono') || q.includes('fundo' ) )
+            return 'Historia del SENA:\n\nFue creado el 21 de junio de 1957 durante el gobierno de la Junta Militar. Su primer director fue Rodolfo Martinez Tono. Nacio con el apoyo de la OIT y empresarios colombianos, y desde entonces ha formado a mas de 100 millones de colombianos.';
+
+        if (q.includes('dato') || q.includes('curioso') || q.includes('sabias que') || q.includes('cifra') || q.includes('estadistica') || q.includes('cuantos aprendices') || q.includes('cuantas sedes')) {
+            const datos = [
+                'El SENA atiende mas de 10 millones de colombianos al ano en sus diferentes modalidades de formacion.',
+                'Cuenta con mas de 117 centros de formacion en los 32 departamentos y Bogota D.C.',
+                'La plataforma Sofia Plus tiene mas de 12 millones de usuarios registrados.',
+                'El SENA tiene convenios con mas de 30 paises para intercambios y cooperacion tecnica internacional.',
+                'El Fondo Emprender ha financiado mas de 50.000 unidades productivas desde su creacion.',
+                'Ofrece mas de 200 cursos virtuales gratuitos, disponibles desde cualquier dispositivo con internet.',
+                'El SENA participa en WorldSkills, la olimpiada mundial de habilidades tecnicas, representando a Colombia.',
+                'El SENA cumplio 67 anos en 2024, siendo una de las instituciones mas antiguas de Latinoamerica.',
+                'Mas de 1 millon de empresas colombianas han vinculado aprendices SENA en contratos de aprendizaje.',
+                'El SENA tiene programas en zonas rurales y comunidades indigenas a traves de sus unidades moviles.',
+            ];
+            return datos[Math.floor(Math.random() * datos.length)] + '\n\nPreguntame por otro dato curioso!';
+        }
+
+        if (q.includes('tecnico') && !q.includes('tecnolog'))
+            return 'Programas Tecnicos SENA (duracion: 18 meses aprox):\n\n- Tecnico en Sistemas\n- Tecnico en Salud Oral\n- Tecnico en Cocina y Gastronomia\n- Tecnico en Electricidad Industrial\n- Tecnico en Contabilizacion de Operaciones\n- Tecnico en Diseno Grafico\n- Tecnico en Mantenimiento de Equipos de Computo\n- Tecnico en Atencion a la Primera Infancia\n- Tecnico en Instalacion de Redes de Comunicaciones\n- Tecnico en Produccion Agropecuaria\n\nEl SENA ofrece mas de 100 programas tecnicos. Consulta en sofia.senasofiaplus.edu.co';
+
+        if (q.includes('tecnolog') && (q.includes('programa') || q.includes('carrera') || q.includes('estudiar') || q.includes('que ofrece')))
+            return 'Programas Tecnologicos SENA (duracion: 2 a 3 anos):\n\n- Tecnologia en Analisis y Desarrollo de Software\n- Tecnologia en Gestion Empresarial\n- Tecnologia en Regencia de Farmacia\n- Tecnologia en Gestion Logistica\n- Tecnologia en Electronica\n- Tecnologia en Gestion de Mercados\n- Tecnologia en Automatizacion Industrial\n- Tecnologia en Procesamiento de Alimentos\n- Tecnologia en Gestion Ambiental\n- Tecnologia en Diseno de Modas\n\nMas de 200 programas tecnologicos disponibles en Sofia Plus.';
+
+        if (q.includes('programa') || (q.includes('que') && q.includes('estudiar')) || q.includes('carrera') || q.includes('oferta'))
+            return 'El SENA ofrece cuatro tipos de formacion:\n\n1. Tecnico (18 meses): Sistemas, salud, gastronomia, electricidad y mas.\n2. Tecnologo (2-3 anos): Software, logistica, electronica, farmacia y mas.\n3. Cursos Complementarios: Cursos cortos gratuitos, virtuales o presenciales.\n4. Especializaciones Tecnologicas: Para tecnologos que desean profundizar.\n\nQuieres saber mas sobre alguno en especifico?';
+
+        if (q.includes('virtual') || q.includes('en linea') || q.includes('online') || q.includes('complementario') || q.includes('sofia') || q.includes('plataforma') || q.includes('curso gratis'))
+            return 'SENA Virtual - Sofia Plus:\n\n- Mas de 200 cursos complementarios gratuitos.\n- Areas: programacion, idiomas, diseno, contabilidad, marketing, salud, agricultura, emprendimiento y mas.\n- Certificados digitales con validez nacional.\n- Disponibles 24/7 desde cualquier dispositivo.\n- Solo necesitas tu cedula para registrarte.\n\nPlataforma: sofia.senasofiaplus.edu.co';
+
+        if (q.includes('inscri') || q.includes('como entrar') || q.includes('como aplicar') || q.includes('requisito') || q.includes('como estudiar') || q.includes('registro') || q.includes('convocatoria'))
+            return 'Como inscribirse al SENA:\n\n1. Ingresa a sofia.senasofiaplus.edu.co\n2. Registrate con tu documento de identidad.\n3. Busca el programa o curso de tu interes.\n4. Revisa los requisitos y fechas de convocatoria.\n5. Aplica a la oferta en tu regional.\n\nPara programas titulados se requiere haber terminado bachillerato. Los cursos virtuales no tienen requisitos de escolaridad.';
+
+        if (q.includes('centro') || q.includes('sede') || q.includes('donde estudiar') || q.includes('regional') || q.includes('instalacion'))
+            return 'Centros de Formacion SENA:\n\n- 117 centros en todo Colombia.\n- Presentes en los 32 departamentos + Bogota D.C.\n- Centros especializados en manufactura, salud, diseno, agropecuario, tecnologia, etc.\n\nEncuentra el centro mas cercano en: sena.edu.co';
+
+        if (q.includes('emprender') || q.includes('fondo emprender') || q.includes('negocio') || q.includes('empresa') || q.includes('emprendimiento') || q.includes('capital semilla'))
+            return 'Fondo Emprender:\n\nPrograma del SENA que financia planes de negocio de aprendices y egresados.\n\nBeneficios:\n- Capital semilla no reembolsable.\n- Montos entre 20 y 180 millones de pesos.\n- Asesoria y acompanamiento empresarial gratuito.\n- Mas de 50.000 empresas creadas desde su inicio.\n\nMas info: fondoemprender.com';
+
+        if (q.includes('empleo') || q.includes('trabajo') || q.includes('oferta laboral') || q.includes('conseguir trabajo') || q.includes('agencia') || q.includes('spe'))
+            return 'Servicio Publico de Empleo (SPE) - SENA:\n\n- Mas de 1 millon de vacantes publicadas al ano.\n- Las empresas publican ofertas gratis.\n- Registra tu hoja de vida sin costo.\n- Orientacion vocacional y rutas de empleabilidad.\n\nAccede en: agenciapublicadeempleo.sena.edu.co';
+
+        if (q.includes('contrato') || q.includes('aprendiz') || q.includes('empresa patrocinadora') || q.includes('etapa productiva') || q.includes('practica'))
+            return 'Contrato de Aprendizaje:\n\n- Etapa lectiva: El aprendiz estudia en el SENA.\n- Etapa productiva: El aprendiz practica en una empresa real.\n- Las empresas con mas de 15 trabajadores tienen cuota obligatoria de aprendices.\n- El aprendiz recibe apoyo de sostenimiento (% del SMMLV).\n\nEs una puerta de entrada al mundo laboral real.';
+
+        if (q.includes('worldskills') || q.includes('olimpiada') || q.includes('competencia') || q.includes('medalla') || q.includes('habilidades sena'))
+            return 'SENA en WorldSkills:\n\nWorldSkills es la olimpiada mundial de habilidades tecnicas:\n\n- Colombia participa cada dos anos representada por aprendices SENA.\n- Medallas en: Cocina, Diseno Grafico, Mecatronica, Soldadura y mas.\n- Los aprendices compiten primero en Habilidades SENA (nivel nacional).\n- En WorldSkills 2022 (Shanghai), Colombia obtuvo medallones de excelencia.';
+
+        if (q.includes('bienestar') || q.includes('beneficio') || q.includes('servicio') || (q.includes('ayuda') && q.includes('aprendiz')) || q.includes('subsidio'))
+            return 'Bienestar del Aprendiz SENA:\n\n- Atencion medica y odontologica gratuita.\n- Apoyo psicosocial y orientacion vocacional.\n- Actividades culturales, deportivas y recreativas.\n- Cafeteria subsidiada en muchos centros.\n- Biblioteca y salas de computo gratuitas.\n- Apoyo de sostenimiento en etapa productiva.';
+
+        if (q.includes('modalidad') || q.includes('presencial') || (q.includes('como') && q.includes('formacion')) || q.includes('distancia') || q.includes('unidad movil'))
+            return 'Modalidades de Formacion SENA:\n\n- Presencial: Clases en centros de formacion con instructores.\n- Virtual: 100% en linea a traves de Sofia Plus.\n- Mixta: Combina presencial y virtual.\n- A distancia: Para personas en zonas alejadas.\n- Movil: Unidades que llegan a comunidades rurales e indigenas.';
+
+        if (q.includes('calculadora'))
+            return '__NAV__|Indexx.html|Abriendo la Calculadora en una nueva pestana...';
+
+        if (q.includes('cobra') || q.includes('prestamista') || q.includes('credito') || q.includes('prestamo') || q.includes('simulador'))
+            return '__NAV__|Indexx.html#prestamista|Abriendo el Simulador de Credito en una nueva pestana...';
+
+        if (q.includes('director') || q.includes('directora') || q.includes('rector') )
+            return 'El actual director general del SENA es Carlos Mario Estrada Molina, quien asumio el cargo en agosto de 2022. Es un ingeniero industrial con amplia experiencia en gestion publica y formacion profesional.';    
+        
+        if (q.includes('centro') || q.includes('cordoba') || q.includes('lugares') )
+            return 'El SENA tiene presencia en todo el territorio colombiano, incluyendo el departamento de Cordoba. En Cordoba, el SENA cuenta con varios centros de formacion ubicados en ciudades como Monteria, Lorica, Cerete y Sahagun, entre otras. Estos centros ofrecen una amplia variedad de programas de formacion tecnica y tecnologica para los habitantes de la region.';
+            
+        if (q.includes('años')||q.includes('aniversario')|| q.includes('cumple') || q.includes('fundacion') || q.includes('historia') || q.includes('1957'))
+            return 'El Servicio Nacional de Aprendizaje (SENA) fue fundado el 21 de junio de 1957, por lo que para el 21 de junio de 2025 cumple 68 años de funcionamiento. Creado por el';
+
+        if (/adios|hasta luego|chao|bye|nos vemos|gracias|hasta pronto/.test(q))
+            return 'Hasta pronto! Fue un placer ayudarte. Recuerda que el SENA transforma vidas. Mucho exito!';
+
+        return 'No tengo informacion sobre eso aun. Puedes preguntarme sobre:\n\n- Que es el SENA / Historia\n- Mision y Vision\n- Himno\n- Datos curiosos\n- Programas tecnicos o tecnologicos\n- Cursos virtuales gratuitos\n- Como inscribirse\n- Centros de formacion\n- Fondo Emprender\n- Empleo y contratos de aprendizaje';
+    }
+
+    function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user');
+        userInput.value = '';
+        sendBtn.disabled = true;
+
+        showTyping();
+
+        const delay = 700 + Math.random() * 400;
+        setTimeout(() => {
+            hideTyping();
+            const respuesta = calcula(text);
+            if (respuesta.startsWith('__NAV__|')) {
+                const [, url, msg] = respuesta.split('|');
+                appendMessage(msg, 'bot');
+                setTimeout(() => { window._navigate ? window._navigate(url) : (window.location.href = url); }, 800);
+            } else {
+                appendMessage(respuesta, 'bot');
+            }
+            sendBtn.disabled = false;
+            userInput.focus();
+        }, delay);
+    }
+
+    function sendSuggestion(text) {
+        userInput.value = text;
+        sendMessage();
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            appendMessage('Bienvenido al asistente virtual del SENA! Estoy aqui para ayudarte. Puedes usar los accesos rapidos o escribirme directamente.', 'bot');
+        }, 600);
+        userInput.focus();
+    });
+</script>
+
+
+<script>
+(function(){
+  function navigate(url){ document.body.classList.add('page-out'); setTimeout(function(){ window.location.href=url; },240); }
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href]'); if(!link) return;
+    var href=link.getAttribute('href');
+    if(!href||href.indexOf('javascript')===0||link.target==='_blank') return;
+    e.preventDefault(); navigate(href);
+  },true);
+  window._navigate=navigate;
+})();
+</script>
+</body>
+</html>

@@ -117,7 +117,7 @@ body {
 ═══════════════════════════════════════════ */
 .app-shell {
   display: grid;
-  grid-template-columns: 56px 190px 1fr 206px 256px;
+  grid-template-columns: 220px 190px 1fr 206px 256px;
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -126,46 +126,63 @@ body {
 /* ═══════════════════════════════════════════
    SIDEBAR NAV
 ═══════════════════════════════════════════ */
+/* ── Sidebar de navegación completo ── */
 .sidebar-nav {
-  background: var(--bg1);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 18px 0;
-  gap: 5px;
+  background: #111c2e;
+  border-right: 1px solid #1e2d45;
+  display: flex; flex-direction: column;
+  padding: 0; gap: 0;
+  overflow-y: auto; overflow-x: hidden;
 }
+.sidebar-nav::-webkit-scrollbar { width: 0; }
 
-.nav-icon {
-  width: 38px; height: 38px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 10px;
-  color: var(--text2);
-  font-size: 15px;
-  cursor: pointer;
-  transition: color .2s, background .2s, box-shadow .2s;
-  position: relative;
+/* Brand */
+.snav-brand {
+  padding: 18px 16px 15px;
+  color: #fff; font-size: 14px; font-weight: 700;
+  border-bottom: 1px solid #1e2d45;
+  display: flex; align-items: center; gap: 9px;
+  letter-spacing: .4px; flex-shrink: 0;
+  font-family: 'Rajdhani', sans-serif;
 }
+.snav-brand .snav-brand-icon { color: var(--cyan); font-size: 16px; }
 
-.nav-icon::after {
-  content: '';
-  position: absolute;
-  left: -1px; top: 50%;
-  transform: translateY(-50%);
-  width: 3px; height: 0;
-  background: var(--cyan);
-  border-radius: 0 3px 3px 0;
-  transition: height .25s;
-  box-shadow: 0 0 6px var(--cyan);
+/* Section labels */
+.snav-label {
+  padding: 12px 16px 4px;
+  font-size: 9px; color: #3d5068;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  font-family: 'Exo 2', sans-serif; flex-shrink: 0;
 }
+.snav-divider { height: 1px; background: #1e2d45; margin: 6px 14px; flex-shrink: 0; }
 
-.nav-icon.active, .nav-icon:hover {
-  background: var(--bg3);
-  color: var(--cyan);
-  box-shadow: 0 0 12px rgba(0,212,255,.2);
+/* Items */
+.snav-item, .nav-icon {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 17px;
+  color: #7a8fa8; font-size: 13px; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background .15s, color .15s, border-color .15s;
+  font-family: 'Exo 2', sans-serif;
+  user-select: none; flex-shrink: 0;
+  width: 100%; /* override old styles */
+  height: auto; border-radius: 0;
+  position: static;
 }
-
-.nav-icon.active::after { height: 22px; }
+.snav-item i, .nav-icon i { font-size: 14px; flex-shrink: 0; }
+.snav-item:hover, .nav-icon:hover {
+  background: #1a2d44; color: #e8edf5;
+  border-left-color: #39d353;
+  box-shadow: none;
+}
+.snav-item.active, .nav-icon.active {
+  background: #162336; color: #e8edf5;
+  border-left-color: var(--cyan);
+  box-shadow: none;
+}
+/* Quitar pseudoelemento anterior */
+.nav-icon::after { display: none !important; }
 
 /* ═══════════════════════════════════════════
    PLAYER WIDGET
@@ -1524,3 +1541,715 @@ body {
   opacity: 0; transition: opacity .25s ease;
 }
 .toast.toast-visible { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════════
+   HOME PAGE — Greeting · Hero · Genre · Recent · Top
+═══════════════════════════════════════════════════════ */
+
+/* ── Greeting + Hero row ── */
+.home-hero {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 18px;
+  flex-shrink: 0;
+}
+.greeting-block { flex: 1; min-width: 0; }
+.greeting-line {
+  font-size: 12px; color: var(--cyan); letter-spacing: .5px;
+  font-family: 'Exo 2', sans-serif; font-weight: 500;
+  margin-bottom: 6px;
+}
+.greeting-main {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 22px; color: var(--text0); line-height: 1.2;
+}
+
+/* Hero card */
+.hero-card {
+  position: relative; overflow: hidden; flex-shrink: 0;
+  width: 290px;
+  background: rgba(26,36,56,.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-bright);
+  border-radius: 18px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+  transition: border-color .4s, box-shadow .4s;
+  cursor: pointer;
+}
+.hero-card:hover {
+  border-color: rgba(0,212,255,.45);
+  box-shadow: 0 0 24px rgba(0,212,255,.12);
+}
+.hero-bg-blur {
+  position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center;
+  filter: blur(24px) brightness(.28) saturate(1.7);
+  opacity: .6; pointer-events: none;
+  transition: background-image .9s ease;
+}
+.hero-art-wrap {
+  position: relative; z-index: 1; flex-shrink: 0;
+  width: 50px; height: 50px; border-radius: 12px;
+  overflow: hidden; background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-art-wrap img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+.hero-music-icon { font-size: 18px; color: var(--text2); }
+.hero-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.hero-now-label {
+  font-size: 9px; color: var(--cyan); text-transform: uppercase;
+  letter-spacing: .7px; display: flex; align-items: center; gap: 4px;
+  margin-bottom: 4px;
+}
+.hero-now-label i { animation: pulse-ring 2s ease-in-out infinite; }
+.hero-song-name {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 15px; color: var(--text0);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hero-song-artist {
+  font-size: 11px; color: var(--text1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hero-play-btn {
+  position: relative; z-index: 1; flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--cyan); color: var(--bg0); font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .15s;
+}
+.hero-play-btn:hover { background: #40e0ff; transform: scale(1.1); }
+
+/* ── Genre chips ── */
+.genre-chips-row {
+  display: flex; gap: 7px; flex-wrap: wrap; flex-shrink: 0;
+}
+.genre-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--bg2); border: 1px solid var(--border-bright);
+  border-radius: 20px; padding: 5px 13px;
+  font-size: 11px; color: var(--text1); font-family: 'Exo 2', sans-serif;
+  cursor: pointer; white-space: nowrap;
+  transition: background .18s, color .18s, border-color .18s, box-shadow .18s;
+}
+.genre-chip:hover {
+  color: var(--cyan); border-color: rgba(0,212,255,.3);
+  background: rgba(0,212,255,.06);
+}
+.genre-chip.active {
+  background: rgba(0,212,255,.13); border-color: rgba(0,212,255,.55);
+  color: var(--cyan); box-shadow: 0 0 14px rgba(0,212,255,.2);
+}
+
+/* ── Recently played ── */
+.recent-scroll {
+  display: flex; gap: 12px;
+  overflow-x: auto; padding-bottom: 5px;
+}
+.recent-scroll::-webkit-scrollbar { height: 3px; }
+.recent-scroll::-webkit-scrollbar-track { background: transparent; }
+.recent-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-bright); border-radius: 2px;
+}
+.recent-card {
+  flex-shrink: 0; width: 100px; cursor: pointer;
+  transition: transform .18s;
+}
+.recent-card:hover { transform: translateY(-4px); }
+.recent-art {
+  width: 100px; height: 100px; border-radius: 13px;
+  overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px; flex-shrink: 0;
+}
+.recent-art img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+.recent-overlay {
+  position: absolute; inset: 0; border-radius: 13px;
+  background: rgba(0,0,0,.52);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .18s;
+}
+.recent-overlay i { color: #fff; font-size: 20px; }
+.recent-card:hover .recent-overlay { opacity: 1; }
+.recent-name {
+  font-size: 11px; font-weight: 600; color: var(--text0);
+  font-family: 'Rajdhani', sans-serif;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.recent-artist {
+  font-size: 10px; color: var(--text1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── Most played list ── */
+.mp-row {
+  display: grid; grid-template-columns: 26px 1fr auto;
+  align-items: center; gap: 11px;
+  padding: 9px 11px; border-radius: 11px;
+  cursor: pointer; transition: background .15s;
+}
+.mp-row:hover { background: var(--card-h); }
+.mp-rank {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 17px; text-align: center;
+}
+.mp-name {
+  font-size: 13px; font-weight: 600; color: var(--text0);
+  font-family: 'Rajdhani', sans-serif;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mp-artist { font-size: 10px; color: var(--text1); }
+.mp-count {
+  font-size: 10px; color: var(--text2); white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+  background: var(--bg2); border: 1px solid var(--border-bright);
+  border-radius: 10px; padding: 3px 9px;
+}
+
+/* ── Global search dropdown ── */
+.search-bar-wrap { position: relative; }
+.search-dropdown {
+  position: absolute; top: calc(100% + 7px); left: 0; right: 0;
+  background: rgba(13,18,32,.97);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-bright); border-radius: 14px;
+  overflow: hidden; z-index: 200;
+  box-shadow: 0 14px 44px rgba(0,0,0,.6);
+}
+.sd-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 13px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background .12s;
+}
+.sd-item:last-child { border-bottom: none; }
+.sd-item:hover { background: var(--card-h); }
+.sd-art {
+  width: 40px; height: 40px; border-radius: 9px;
+  flex-shrink: 0; overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.sd-art img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+.sd-icon { font-size: 12px; color: var(--text2); }
+.sd-info { flex: 1; min-width: 0; }
+.sd-name {
+  font-size: 13px; font-weight: 600; color: var(--text0);
+  font-family: 'Rajdhani', sans-serif;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sd-meta { font-size: 10px; color: var(--text1); }
+.sd-source {
+  background: rgba(0,212,255,.12); color: var(--cyan);
+  border-radius: 4px; padding: 1px 5px; font-size: 9px;
+}
+.sd-play-btn {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--cyan); color: var(--bg0); font-size: 9px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .15s; pointer-events: none;
+}
+.sd-item:hover .sd-play-btn { opacity: 1; }
+.sd-empty {
+  padding: 16px 14px; font-size: 12px;
+  color: var(--text2); font-style: italic;
+}
+
+/* ═══════════════════════════════════════════
+   PERFIL
+═══════════════════════════════════════════ */
+#profileSection {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-bright) transparent;
+}
+
+.profile-edit-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 8px 0 28px;
+}
+
+/* ── Avatar area ── */
+.profile-avatar-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-big-avatar {
+  position: relative;
+  width: 112px; height: 112px;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  background: linear-gradient(155deg, #1c1a42 0%, #0d2245 45%, #1a0e3e 100%);
+  border: 3px solid var(--border-bright);
+  transition: border-color .25s, box-shadow .25s;
+}
+.profile-big-avatar:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 28px rgba(0,212,255,.28);
+}
+.profile-big-avatar img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: 50%;
+}
+.profile-avatar-placeholder {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px; color: rgba(255,255,255,.18);
+}
+.profile-avatar-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.58);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px; opacity: 0;
+  transition: opacity .2s;
+  color: #fff; font-size: 11px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 500; letter-spacing: .3px;
+}
+.profile-avatar-overlay i { font-size: 18px; }
+.profile-big-avatar:hover .profile-avatar-overlay { opacity: 1; }
+
+.profile-remove-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text2);
+  padding: 5px 13px; border-radius: 8px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg2);
+  font-family: 'Exo 2', sans-serif;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.profile-remove-btn:hover {
+  color: var(--pink);
+  border-color: rgba(255,45,120,.35);
+  background: rgba(255,45,120,.08);
+}
+
+/* ── Form ── */
+.profile-form {
+  width: 100%; max-width: 300px;
+  display: flex; flex-direction: column; gap: 13px;
+}
+.profile-field { display: flex; flex-direction: column; gap: 6px; }
+.profile-field-label {
+  font-size: 9.5px; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 1.3px;
+  font-family: 'Exo 2', sans-serif;
+}
+.profile-input {
+  background: var(--bg2);
+  border: 1.5px solid var(--border-bright);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px; color: var(--text0);
+  font-family: 'Rajdhani', sans-serif; font-weight: 600;
+  letter-spacing: .3px; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.profile-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0,212,255,.1);
+}
+.profile-input::placeholder { color: var(--text2); font-weight: 400; }
+
+.profile-save-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; padding: 10px;
+  background: linear-gradient(135deg, rgba(0,212,255,.12), rgba(124,58,237,.12));
+  border: 1px solid rgba(0,212,255,.3); color: var(--cyan);
+  border-radius: 10px; font-family: 'Exo 2', sans-serif;
+  font-size: 13px; font-weight: 600;
+  transition: background .2s, box-shadow .2s;
+}
+.profile-save-btn:hover {
+  background: linear-gradient(135deg, rgba(0,212,255,.22), rgba(124,58,237,.22));
+  box-shadow: 0 0 18px rgba(0,212,255,.28);
+}
+
+/* ── Stats grid ── */
+.profile-stats-grid {
+  display: flex; gap: 10px;
+  width: 100%; max-width: 300px;
+}
+.profile-stat-item {
+  flex: 1; background: var(--card);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px; padding: 14px 8px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px; text-align: center;
+}
+.profile-stat-value {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 22px; color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,212,255,.4);
+  line-height: 1;
+}
+.profile-stat-label {
+  font-size: 9px; color: var(--text2);
+  text-transform: uppercase; letter-spacing: .8px;
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* ── Cuando el avatar tiene foto: ocultar el silhouette CSS ── */
+.avatar-img.has-photo::before,
+.avatar-img.has-photo::after { display: none !important; }
+
+/* ════════════════════════════════════════════════
+   PAGE TRANSITIONS — compartidas con todas las páginas
+════════════════════════════════════════════════ */
+@keyframes pg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pg-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+body { animation: pg-in .3s ease both; }
+body.page-out {
+  animation: pg-out .24s ease both !important;
+  pointer-events: none !important;
+}
+
+/* ═════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET  (max-width: 1024px)
+   Colapsa las dos columnas laterales derechas (hits + stats)
+   y ajusta tamaños de tipografía y paddings.
+   NO se modifica ninguna regla existente — solo se añade.
+═════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+
+  /* El grid pasa de 5 columnas a 3: sidebar-nav + player-widget + main */
+  .app-shell {
+    grid-template-columns: 220px 190px 1fr;
+  }
+
+  /* Ocultar paneles derechos en tablet para no aplastar el contenido */
+  .hits-panel,
+  .stats-panel {
+    display: none;
+  }
+
+  /* Reducir la barra de publicidad */
+  .ad-banner { height: 52px; }
+  .ad-track  { height: 52px; }
+  .ad-item   { height: 52px; min-width: 340px; gap: 20px; padding: 0 30px; }
+  .ad-pct    { font-size: 26px; }
+  .ad-big-title { font-size: 18px; }
+
+  /* Tipografía hero */
+  .greeting-main { font-size: 18px; }
+
+  /* Dual-grid en 1 columna para que no sea demasiado estrecho */
+  .dual-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Hero card más pequeña */
+  .hero-card { width: 220px; }
+}
+
+
+/* ═════════════════════════════════════════════════════════
+   RESPONSIVE — MÓVIL  (max-width: 640px)
+   Layout de 1 sola columna. La sidebar pasa a barra inferior
+   fija. Body con scroll vertical. Player en columna vertical
+   compacto (avatar arriba, vinilo, info, controles, volumen).
+═════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* ── 1. Scroll vertical normal en móvil ── */
+  html, body {
+    overflow: auto !important;
+    height: auto !important;
+  }
+  body { display: block !important; }
+
+  /* ── 2. Grid del shell: 1 columna apilada ── */
+  .app-shell {
+    display: block !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+    padding-bottom: 60px; /* deja espacio para la barra inferior */
+  }
+
+  /* ── 3. Sidebar-nav → barra inferior fija ── */
+  .sidebar-nav {
+    position: fixed !important;
+    bottom: 0; left: 0; right: 0;
+    width: 100% !important;
+    height: 56px !important;
+    flex-direction: row !important;
+    border-right: none !important;
+    border-top: 1px solid var(--border) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    z-index: 1000;
+    padding: 0 !important;
+    background: #111c2e;
+    justify-content: space-around;
+    align-items: stretch;
+  }
+  .snav-brand,
+  .snav-label,
+  .snav-divider,
+  .snav-profile {
+    display: none !important;
+  }
+  .snav-item,
+  .nav-icon {
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 2px !important;
+    padding: 4px 2px !important;
+    font-size: 9px !important;
+    width: auto !important;
+    flex: 1 0 auto !important;
+    min-width: 50px !important;
+    border-left: none !important;
+    border-bottom: 3px solid transparent !important;
+  }
+  .snav-item i,
+  .nav-icon i { font-size: 17px !important; }
+  .snav-item.active,
+  .nav-icon.active {
+    border-bottom-color: var(--cyan) !important;
+    border-left-color: transparent !important;
+  }
+  .snav-item span,
+  .nav-icon span {
+    display: block !important;
+    font-size: 9px !important;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* ── 4. Player widget: COLUMNA, no row ── */
+  .player-widget {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 12px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    overflow: visible !important;
+  }
+
+  /* Profile block horizontal compacto */
+  .profile-block {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+  }
+  .avatar-wrap { width: 48px !important; height: 48px !important; }
+  .avatar-img  { width: 48px !important; height: 48px !important; }
+  .avatar-img::before { width: 28px !important; height: 28px !important; top: 10px !important; left: 10px !important; }
+  .avatar-img::after  { width: 32px !important; height: 20px !important; top: 4px !important; left: 8px !important; }
+  .username-label { font-size: 13px !important; }
+
+  /* Player card: SIN flex:1, altura natural */
+  .player-card {
+    width: 100% !important;
+    flex: 0 0 auto !important;
+    padding: 14px 12px !important;
+  }
+
+  /* Vinilo: tamaño visible y centrado */
+  .vinyl-wrap {
+    justify-content: center !important;
+    min-height: 100px !important;
+  }
+  .vinyl {
+    width: 96px !important;
+    height: 96px !important;
+    flex-shrink: 0 !important;
+  }
+  .vinyl-btn {
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* Controles del player: tamaño táctil */
+  .player-controls {
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+  .ctrl-btn {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 14px !important;
+  }
+  .ctrl-btn.play-btn {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 18px !important;
+  }
+
+  .volume-row { gap: 8px !important; }
+  .player-extras {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    justify-content: center !important;
+  }
+
+  /* Visualizer canvas más bajo en móvil */
+  .visualizer-canvas { height: 18px !important; }
+
+  /* ── 5. Main content ── */
+  .main-content {
+    overflow: visible !important;
+    min-height: 0 !important;
+    padding: 12px 12px 20px !important;
+    gap: 14px !important;
+  }
+
+  /* ── 6. Ocultar paneles derechos ── */
+  .hits-panel,
+  .stats-panel { display: none !important; }
+
+  /* ── 7. Grids → 1 columna ── */
+  .dual-grid { grid-template-columns: 1fr !important; }
+  .hits-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* ── 8. Tipografía reducida ── */
+  .greeting-main    { font-size: 18px !important; line-height: 1.2 !important; }
+  .greeting-line    { font-size: 12px !important; }
+  .section-title    { font-size: 15px !important; }
+  .stats-heading    { font-size: 17px !important; }
+  .greeting-title   { font-size: 28px !important; }
+
+  /* ── 9. Hero card ── */
+  .home-hero {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .hero-card {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+
+  /* ── 10. Biblioteca apilada ── */
+  .lib-layout {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .lib-sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    height: auto !important;
+    border-radius: 10px !important;
+    padding: 6px !important;
+  }
+  .lib-sidebar-label { width: 100%; font-size: 11px !important; }
+  .lib-main {
+    overflow: visible !important;
+    min-height: 200px;
+  }
+
+  /* ── 11. Themes presets ── */
+  .themes-presets { flex-wrap: wrap !important; }
+  .theme-preset-btn {
+    flex: 1 1 calc(50% - 8px) !important;
+    min-width: 130px !important;
+  }
+
+  /* ── 12. Profile stats columna ── */
+  .profile-stats-grid { flex-direction: column !important; }
+
+  /* ── 13. Mini player flotante ── */
+  .mini-player {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 64px !important;
+    width: auto !important;
+  }
+
+  /* ── 14. Toast ── */
+  .toast { bottom: 68px !important; }
+
+  /* ── 15. Banner publicitario compacto ── */
+  .ad-banner { height: 44px !important; position: relative !important; }
+  .ad-track  { height: 44px !important; }
+  .ad-item   {
+    height: 44px !important;
+    min-width: 280px !important;
+    gap: 12px !important;
+    padding: 0 18px !important;
+  }
+  .ad-pct        { font-size: 20px !important; }
+  .ad-big-title  { font-size: 14px !important; letter-spacing: 2px !important; }
+  .ad-left-text  { display: none !important; }
+  .ad-badge      { font-size: 10px !important; }
+
+  /* ── 16. Cards del top10 ── */
+  .t10-card { flex: 0 0 100px !important; }
+
+  /* ── 17. Padding general ── */
+  .section { padding: 0 !important; }
+
+  /* ── 18. Genre chips: scroll horizontal cómodo ── */
+  .genre-chips-row {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+  .genre-chip { flex: 0 0 auto !important; }
+}
+
+
+/* ═════════════════════════════════════════════════════════
+   RESPONSIVE — MÓVIL PEQUEÑO  (max-width: 380px)
+   Ajustes adicionales para Samsung S8+, iPhone SE, etc.
+═════════════════════════════════════════════════════════ */
+@media (max-width: 380px) {
+
+  .player-widget { padding: 10px 8px !important; }
+  .player-card   { padding: 12px 10px !important; }
+
+  .vinyl { width: 84px !important; height: 84px !important; }
+  .vinyl-wrap { min-height: 88px !important; }
+
+  .ctrl-btn {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 13px !important;
+  }
+  .ctrl-btn.play-btn {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 16px !important;
+  }
+
+  .player-song   { font-size: 16px !important; }
+  .player-artist { font-size: 12px !important; }
+
+  .greeting-main { font-size: 16px !important; }
+  .hero-card     { padding: 10px !important; }
+
+  .snav-item span,
+  .nav-icon span { font-size: 8px !important; }
+  .snav-item i,
+  .nav-icon i    { font-size: 16px !important; }
+
+  .main-content { padding: 10px 8px 16px !important; }
+}
