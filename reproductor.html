@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4You — Music Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── SIDEBAR NAV ── -->
+  <nav class="sidebar-nav">
+    <div class="snav-brand">
+      <i class="fas fa-music"></i><span>4You Music</span>
+    </div>
+    <div class="snav-label">Páginas</div>
+    <a class="snav-item" href="hub.html"><i class="fas fa-th-large"></i><span>Hub</span></a>
+    <a class="snav-item" href="IA.html"><i class="fas fa-robot"></i><span>Asistente IA</span></a>
+    <a class="snav-item" href="Indexx.html"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
+    <a class="snav-item" href="Indexx.html#prestamista"><i class="fas fa-hand-holding-dollar"></i><span>Prestamista</span></a>
+    <div class="snav-divider"></div>
+    <div class="snav-label">Reproductor</div>
+    <div class="nav-icon snav-item active" data-view="home"><i class="fas fa-house"></i><span>Inicio</span></div>
+    <div class="nav-icon snav-item" data-view="library"><i class="fas fa-layer-group"></i><span>Biblioteca</span></div>
+    <div class="nav-icon snav-item" data-view="themes"><i class="fas fa-palette"></i><span>Temas</span></div>
+    <div class="nav-icon snav-item" data-view="profile"><i class="fas fa-user-circle"></i><span>Perfil</span></div>
+  </nav>
+
+  <!-- ── PLAYER WIDGET ── -->
+  <aside class="player-widget">
+    <div class="profile-block">
+      <div class="avatar-wrap">
+        <div class="avatar-ring" id="avatarRing"></div>
+        <div class="avatar-img" id="avatarImgEl">
+        <img id="avatarPhoto" src="" alt=""
+             style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+      </div>
+      </div>
+      <span class="username-label">4You</span>
+    </div>
+
+    <div class="player-card" id="playerCard">
+      <div class="vinyl-wrap">
+        <div class="vinyl" id="vinyl">
+          <div class="vinyl-grooves"></div>
+          <!-- 🖼️ Carátula circular — se llena desde app.js con PLAYER_DEFAULT.img -->
+          <img id="vinylArt" class="vinyl-art" src="" alt="album art"
+               onerror="this.style.display='none'"
+               onload="this.style.display='block'"
+               style="display:none">
+          <div class="vinyl-hole"></div>
+        </div>
+        <button class="vinyl-btn" title="Shuffle"><i class="fas fa-shuffle"></i></button>
+      </div>
+
+      <div class="player-meta">
+        <div class="player-song-row">
+          <div class="player-song">Aishite</div>
+          <button class="extra-btn share-btn" id="btnShare" title="Compartir canción">
+            <i class="fas fa-share-nodes"></i>
+          </button>
+        </div>
+        <div class="player-artist">Ado</div>
+      </div>
+
+      <canvas id="visualizerCanvas" class="visualizer-canvas"></canvas>
+
+      <div class="player-progress">
+        <div class="progress-track" id="progressTrack">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-thumb" id="progressThumb"></div>
+        </div>
+        <div class="progress-times">
+          <span id="currentTime">1:23</span>
+          <span id="totalTime">3:58</span>
+        </div>
+      </div>
+
+      <div class="player-controls">
+        <button class="ctrl-btn" id="btnShuffle"><i class="fas fa-shuffle"></i></button>
+        <button class="ctrl-btn" id="btnPrev"><i class="fas fa-backward-step"></i></button>
+        <button class="ctrl-btn play-btn" id="btnPlay"><i class="fas fa-pause"></i></button>
+        <button class="ctrl-btn" id="btnNext"><i class="fas fa-forward-step"></i></button>
+        <button class="ctrl-btn" id="btnRepeat"><i class="fas fa-repeat"></i></button>
+      </div>
+
+      <div class="volume-row">
+        <button class="vol-btn" id="btnMute" title="Silenciar">
+          <i class="fas fa-volume-high" id="volIcon"></i>
+        </button>
+        <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80">
+        <button class="extra-btn" id="btnCrossfade" title="Crossfade">
+          <i class="fas fa-wave-square"></i>
+        </button>
+      </div>
+
+      <div class="player-extras">
+        <button class="extra-btn" id="btnSpeed" title="Velocidad de reproducción">
+          <span id="speedLabel">1×</span>
+        </button>
+        <button class="extra-btn" id="btnMiniPlayer" title="Mini player flotante">
+          <i class="fas fa-compress"></i>
+        </button>
+        <span class="sleep-countdown" id="sleepCountdown" style="display:none">
+          <i class="fas fa-moon"></i><span id="sleepTimeLeft"></span>
+        </span>
+        <div class="sleep-wrap">
+          <button class="extra-btn" id="btnSleep" title="Sleep timer">
+            <i class="fas fa-moon"></i>
+          </button>
+          <div class="sleep-popup" id="sleepPopup" style="display:none">
+            <button data-mins="15">15 min</button>
+            <button data-mins="30">30 min</button>
+            <button data-mins="45">45 min</button>
+            <button data-mins="60">60 min</button>
+            <button data-mins="0"><i class="fas fa-xmark"></i> Apagar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main-content">
+
+    <!-- ── Greeting + Hero ── -->
+    <div class="home-hero home-section">
+      <div class="greeting-block">
+        <p class="greeting-line" id="greetingLine">Buenas tardes</p>
+        <h1 class="greeting-main">¿Qué quieres <span class="rgb-accent">escuchar hoy?</span></h1>
+      </div>
+      <div class="hero-card" id="heroCard">
+        <div class="hero-bg-blur" id="heroBgBlur"></div>
+        <div class="hero-art-wrap">
+          <img id="heroImg" src="" alt=""
+               onerror="this.style.display='none';this.nextElementSibling.style.display=''"
+               onload="this.style.display='block';this.nextElementSibling.style.display='none'"
+               style="display:none">
+          <i class="fas fa-music hero-music-icon"></i>
+        </div>
+        <div class="hero-info">
+          <span class="hero-now-label"><i class="fas fa-wave-square"></i> Reproduciendo ahora</span>
+          <div class="hero-song-name" id="heroSongName">Aishite</div>
+          <div class="hero-song-artist" id="heroSongArtist">Ado</div>
+        </div>
+        <button class="hero-play-btn" id="heroBtnPlay">
+          <i class="fas fa-pause"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar-wrap home-section" id="searchBarWrap">
+      <div class="search-bar">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="text" placeholder="Busca artistas, canciones, álbumes…" id="searchInput">
+        <div class="search-indicator"></div>
+      </div>
+      <div class="search-dropdown" id="searchDropdown" style="display:none"></div>
+    </div>
+
+    <!-- Genre chips -->
+    <div class="genre-chips-row home-section">
+      <button class="genre-chip active" data-genre="all"><i class="fas fa-music"></i> Todos</button>
+      <button class="genre-chip" data-genre="rock"><i class="fas fa-guitar"></i> Rock</button>
+      <button class="genre-chip" data-genre="pop"><i class="fas fa-star"></i> Pop</button>
+      <button class="genre-chip" data-genre="hiphop"><i class="fas fa-microphone"></i> Hip-Hop</button>
+      <button class="genre-chip" data-genre="jpop"><i class="fas fa-torii-gate"></i> J-Pop</button>
+      <button class="genre-chip" data-genre="electronic"><i class="fas fa-bolt"></i> Electronic</button>
+    </div>
+
+    <!-- Top 10 -->
+    <section class="section home-section" style="--delay:0s">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Top 10 <span class="rgb-accent">de esta semana</span>
+            <i class="fas fa-link link-icon"></i></h2>
+          <p class="section-sub">Basado En tus Preferencias</p>
+        </div>
+        <div class="carousel-controls">
+          <button class="c-btn" id="top10Prev"><i class="fas fa-chevron-left"></i></button>
+          <button class="c-btn" id="top10Next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="top10-viewport">
+        <div class="top10-track" id="top10Track"></div>
+      </div>
+    </section>
+
+    <!-- Reproducido recientemente -->
+    <section class="section home-section" id="recentSection" style="display:none">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reproducido <span class="rgb-accent">recientemente</span></h2>
+          <p class="section-sub">Tus últimas canciones</p>
+        </div>
+      </div>
+      <div class="recent-scroll" id="recentScroll"></div>
+    </section>
+
+    <!-- Más escuchadas -->
+    <section class="section home-section" id="mostPlayedSection" style="display:none">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Tus <span class="rgb-accent">más escuchadas</span></h2>
+          <p class="section-sub">Basado en tu historial de escucha</p>
+        </div>
+      </div>
+      <div id="mostPlayedHome"></div>
+    </section>
+
+    <!-- Playlist + Trending -->
+    <div class="dual-grid home-section">
+      <section class="section" style="--delay:.08s">
+        <h2 class="section-title">My Playlist</h2>
+        <div class="playlist-list" id="playlistList"></div>
+      </section>
+
+      <section class="section" style="--delay:.14s">
+        <h2 class="section-title">Trending Videos</h2>
+        <p class="section-sub" style="margin-bottom:8px">Basado En tus Preferencias</p>
+        <div class="trending-viewport">
+          <div class="trending-track" id="trendingTrack"></div>
+        </div>
+        <div class="carousel-dots" id="trendingDots"></div>
+      </section>
+    </div>
+
+    <!-- Biblioteca -->
+    <section class="section" id="librarySection" style="display:none">
+
+      <div id="libReconnectBanner" class="lib-reconnect-banner" style="display:none">
+        <i class="fas fa-triangle-exclamation"></i>
+        <span>Haz clic para reconectar la carpeta de canciones</span>
+        <i class="fas fa-chevron-right"></i>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Biblioteca <span class="rgb-accent">de canciones</span></h2>
+          <p class="section-sub" id="libStatus">Conecta tu carpeta para comenzar</p>
+        </div>
+        <button class="c-btn" id="libRefreshBtn" title="Actualizar biblioteca" style="display:none">
+          <i class="fas fa-rotate-right"></i>
+        </button>
+      </div>
+
+      <div id="libConnectState" class="lib-connect">
+        <div class="lib-connect-icon"><i class="fas fa-folder-open"></i></div>
+        <p class="lib-connect-text">Selecciona la carpeta raíz <strong>MsuicaPlayer</strong> para cargar todas tus canciones automáticamente. Solo necesitas hacerlo una vez.</p>
+        <button class="lib-connect-btn" id="libConnectBtn">
+          <i class="fas fa-link"></i> Conectar carpeta
+        </button>
+      </div>
+
+      <div id="libSongList" style="display:none">
+        <div class="lib-search-wrap">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="libSearchInput" placeholder="Buscar en biblioteca…">
+          <span class="lib-search-count" id="libSearchCount"></span>
+        </div>
+        <div class="lib-layout">
+          <aside class="lib-sidebar">
+            <p class="lib-sidebar-label">Explorar</p>
+            <div class="lib-filter-item lib-filter-active" data-filter="all">
+              <i class="fas fa-music"></i><span>Todas</span>
+            </div>
+            <div class="lib-filter-item" data-filter="artists">
+              <i class="fas fa-users"></i><span>Artistas</span>
+            </div>
+            <div class="lib-filter-item" data-filter="recent">
+              <i class="fas fa-clock-rotate-left"></i><span>Recientes</span>
+            </div>
+            <div class="lib-filter-item" data-filter="favorites">
+              <i class="fas fa-heart"></i><span>Favoritos</span>
+            </div>
+            <p class="lib-sidebar-label" style="margin-top:14px">Ordenar</p>
+            <div class="lib-filter-item lib-sort-active" data-sort="name">
+              <i class="fas fa-arrow-down-a-z"></i><span>A → Z</span>
+            </div>
+            <div class="lib-filter-item" data-sort="artist">
+              <i class="fas fa-user"></i><span>Artista</span>
+            </div>
+          </aside>
+          <div class="lib-main">
+            <div class="lib-list" id="libraryList"></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Temas -->
+    <section class="section" id="themesSection" style="display:none">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Temas <span class="rgb-accent">de color</span></h2>
+          <p class="section-sub">Personaliza la apariencia de tu player</p>
+        </div>
+      </div>
+
+      <div class="themes-container">
+        <p class="themes-group-label">Presets</p>
+        <div class="themes-presets">
+          <button class="theme-preset-btn active" data-theme="cyan">
+            <div class="preset-colors">
+              <span style="background:#00d4ff"></span>
+              <span style="background:#ff2d78"></span>
+              <span style="background:#080b11"></span>
+            </div>
+            <span class="preset-name">Cyber Cyan</span>
+            <i class="fas fa-check preset-check"></i>
+          </button>
+          <button class="theme-preset-btn" data-theme="pink">
+            <div class="preset-colors">
+              <span style="background:#ff2d78"></span>
+              <span style="background:#7c3aed"></span>
+              <span style="background:#110810"></span>
+            </div>
+            <span class="preset-name">Sakura</span>
+            <i class="fas fa-check preset-check"></i>
+          </button>
+          <button class="theme-preset-btn" data-theme="green">
+            <div class="preset-colors">
+              <span style="background:#00ff99"></span>
+              <span style="background:#00d4ff"></span>
+              <span style="background:#050e0a"></span>
+            </div>
+            <span class="preset-name">Matrix</span>
+            <i class="fas fa-check preset-check"></i>
+          </button>
+        </div>
+
+        <p class="themes-group-label" style="margin-top:20px">Personalizar</p>
+        <div class="themes-custom-grid">
+          <div class="picker-row">
+            <label class="picker-label">Acento principal</label>
+            <div class="picker-right">
+              <input type="color" id="colorAccent" class="color-input" value="#00d4ff">
+              <code class="color-hex" id="colorAccentHex">#00d4ff</code>
+            </div>
+          </div>
+          <div class="picker-row">
+            <label class="picker-label">Color secundario</label>
+            <div class="picker-right">
+              <input type="color" id="colorSecondary" class="color-input" value="#ff2d78">
+              <code class="color-hex" id="colorSecondaryHex">#ff2d78</code>
+            </div>
+          </div>
+          <div class="picker-row">
+            <label class="picker-label">Fondo base</label>
+            <div class="picker-right">
+              <input type="color" id="colorBg" class="color-input" value="#080b11">
+              <code class="color-hex" id="colorBgHex">#080b11</code>
+            </div>
+          </div>
+          <button class="theme-apply-btn" id="themeApplyBtn">
+            <i class="fas fa-check"></i> Aplicar tema personalizado
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Perfil -->
+    <section class="section" id="profileSection" style="display:none">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Mi <span class="rgb-accent">Perfil</span></h2>
+          <p class="section-sub">Personaliza tu experiencia en 4You</p>
+        </div>
+      </div>
+
+      <div class="profile-edit-card">
+
+        <!-- Avatar grande -->
+        <div class="profile-avatar-area">
+          <div class="profile-big-avatar" id="profileBigAvatar" title="Cambiar foto de perfil">
+            <img id="profileBigPhoto" src="" alt="" style="display:none">
+            <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-avatar-overlay">
+              <i class="fas fa-camera"></i>
+              <span>Cambiar foto</span>
+            </div>
+          </div>
+          <input type="file" id="profileFileInput" accept="image/*" style="display:none">
+          <button class="profile-remove-btn" id="profileRemoveBtn">
+            <i class="fas fa-trash"></i> Quitar foto
+          </button>
+        </div>
+
+        <!-- Formulario -->
+        <div class="profile-form">
+          <div class="profile-field">
+            <label class="profile-field-label">Nombre de usuario</label>
+            <input type="text" id="profileUsernameInput" class="profile-input"
+                   placeholder="Ej: Esteban" maxlength="20" spellcheck="false">
+          </div>
+          <button class="profile-save-btn" id="profileSaveBtn">
+            <i class="fas fa-check"></i> Guardar cambios
+          </button>
+        </div>
+
+        <!-- Mini stats -->
+        <div class="profile-stats-grid">
+          <div class="profile-stat-item">
+            <span class="profile-stat-value" id="pstatPlays">0</span>
+            <span class="profile-stat-label">Reproducciones</span>
+          </div>
+          <div class="profile-stat-item">
+            <span class="profile-stat-value" id="pstatFavs">0</span>
+            <span class="profile-stat-label">Favoritos</span>
+          </div>
+          <div class="profile-stat-item">
+            <span class="profile-stat-value" id="pstatLib">0</span>
+            <span class="profile-stat-label">En biblioteca</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── MUSIC HITS ── -->
+  <section class="hits-panel">
+    <h2 class="section-title" style="margin-bottom:12px">Music Hits</h2>
+    <div class="hits-grid" id="hitsGrid"></div>
+  </section>
+
+  <!-- ── STATS PANEL ── -->
+  <aside class="stats-panel">
+
+    <div class="stats-tabs">
+      <button class="stats-tab active" data-tab="stats"><i class="fas fa-chart-bar"></i> Stats</button>
+      <button class="stats-tab" data-tab="queue"><i class="fas fa-list-ul"></i> Cola</button>
+      <button class="stats-tab" data-tab="lyrics"><i class="fas fa-align-left"></i> Letra</button>
+      <button class="stats-tab" data-tab="eq"><i class="fas fa-sliders"></i> EQ</button>
+    </div>
+
+    <div id="statsTabContent" class="stats-tab-pane">
+      <h2 class="stats-heading">Estadísticas</h2>
+
+      <div class="stat-card" style="--cd:.05s">
+        <p class="stat-label">estadísticas de escucha</p>
+        <div class="stat-col">
+          <div>
+            <span class="stat-value cyan" id="statTotalPlays">0</span>
+            <span class="stat-sub">Reproducciones</span>
+          </div>
+          <div style="margin-top:6px">
+            <span class="stat-value cyan" id="statTotalTime">0 H 00 M</span>
+            <span class="stat-sub">Tiempo de escucha</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card" style="--cd:.12s">
+        <p class="stat-label">Tiempo de Escucha Semanal</p>
+        <div class="bar-chart" id="barChart"></div>
+        <div class="bar-labels">
+          <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+        </div>
+      </div>
+
+      <div class="stat-card" style="--cd:.2s">
+        <p class="stat-label">Generos Mas escuchados</p>
+        <div id="genreList"></div>
+      </div>
+
+      <div class="stat-card most-played" style="--cd:.28s">
+        <p class="stat-label">Cancion Mas escuchada</p>
+        <div class="most-played-row">
+          <div class="most-played-art"></div>
+          <div>
+            <div class="most-played-name" id="statMostPlayedName">—</div>
+            <div class="most-played-artist" id="statMostPlayedArtist">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="queueTabContent" class="stats-tab-pane" style="display:none">
+      <div class="queue-list" id="queueList"></div>
+    </div>
+
+    <div id="lyricsTabContent" class="stats-tab-pane" style="display:none">
+      <p class="lyrics-status" id="lyricsStatus">Reproduce una canción para ver la letra</p>
+      <div class="lyrics-lines" id="lyricsLines"></div>
+    </div>
+
+    <div id="eqTabContent" class="stats-tab-pane" style="display:none">
+      <div class="eq-presets-row">
+        <button class="eq-preset-btn active" data-preset="flat">Flat</button>
+        <button class="eq-preset-btn" data-preset="rock">Rock</button>
+        <button class="eq-preset-btn" data-preset="pop">Pop</button>
+        <button class="eq-preset-btn" data-preset="jazz">Jazz</button>
+        <button class="eq-preset-btn" data-preset="bass">Bass+</button>
+      </div>
+      <div class="eq-bands-wrap">
+        <div class="eq-band">
+          <span class="eq-db" id="eq0db">0</span>
+          <div class="eq-slider-track"><input type="range" class="eq-slider" id="eq0" min="-12" max="12" value="0" step="1"></div>
+          <span class="eq-freq">60Hz</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-db" id="eq1db">0</span>
+          <div class="eq-slider-track"><input type="range" class="eq-slider" id="eq1" min="-12" max="12" value="0" step="1"></div>
+          <span class="eq-freq">230Hz</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-db" id="eq2db">0</span>
+          <div class="eq-slider-track"><input type="range" class="eq-slider" id="eq2" min="-12" max="12" value="0" step="1"></div>
+          <span class="eq-freq">910Hz</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-db" id="eq3db">0</span>
+          <div class="eq-slider-track"><input type="range" class="eq-slider" id="eq3" min="-12" max="12" value="0" step="1"></div>
+          <span class="eq-freq">4kHz</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-db" id="eq4db">0</span>
+          <div class="eq-slider-track"><input type="range" class="eq-slider" id="eq4" min="-12" max="12" value="0" step="1"></div>
+          <span class="eq-freq">14kHz</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ── AD BANNER ── -->
+<div class="ad-banner">
+  <div class="ad-track" id="adTrack"></div>
+</div>
+
+<!-- Mini player flotante -->
+<div id="miniPlayer" class="mini-player" style="display:none">
+  <div class="mini-art">
+    <img id="miniArt" src="" alt=""
+         onerror="this.style.display='none'"
+         onload="this.style.display='block';this.nextElementSibling.style.display='none'"
+         style="display:none">
+    <i class="fas fa-music mini-art-icon"></i>
+  </div>
+  <div class="mini-info">
+    <div class="mini-title" id="miniTitle">—</div>
+    <div class="mini-artist" id="miniArtist">—</div>
+    <div class="mini-progress">
+      <div class="mini-progress-fill" id="miniProgressFill"></div>
+    </div>
+  </div>
+  <div class="mini-controls">
+    <button class="mini-btn" id="miniBtnPrev"><i class="fas fa-backward-step"></i></button>
+    <button class="mini-btn mini-btn-play" id="miniBtnPlay"><i class="fas fa-play"></i></button>
+    <button class="mini-btn" id="miniBtnNext"><i class="fas fa-forward-step"></i></button>
+    <button class="mini-btn mini-btn-close" id="miniBtnClose"><i class="fas fa-xmark"></i></button>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="toast" style="display:none"></div>
+
+<!-- Audio oculto — se controla desde app.js -->
+<audio id="audioPlayer" preload="metadata"></audio>
+
+<script src="app.js"></script>
+<script>
+(function(){
+  function navigate(url){ document.body.classList.add('page-out'); setTimeout(function(){ window.location.href=url; },240); }
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href]'); if(!link) return;
+    var href=link.getAttribute('href');
+    if(!href||href.indexOf('javascript')===0||link.target==='_blank') return;
+    e.preventDefault(); navigate(href);
+  },true);
+  window._navigate=navigate;
+})();
+</script>
+</body>
+</html>
